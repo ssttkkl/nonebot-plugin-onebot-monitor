@@ -47,5 +47,5 @@ def group_admin_notice_event():
     return GroupAdminNoticeEvent(
         time=time.time(), self_id=SELF_ID, post_type="notice",
         notice_type="group_admin", sub_type="set", group_id=GROUP_ID,
-        user_id=USER_ID
+        user_id=SELF_ID
     )

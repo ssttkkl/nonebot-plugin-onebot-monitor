@@ -7,7 +7,7 @@ class MyTest:
     @pytest.fixture(autouse=True)
     def set_env(self, monkeypatch):
         for key, value in self.env.items():
-            monkeypatch.setenv(key, value)
+            monkeypatch.setenv(key, str(value))
         print("set env")
 
     @pytest.fixture(autouse=True)

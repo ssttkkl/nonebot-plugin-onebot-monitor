@@ -21,14 +21,15 @@ def parse_request(event: RequestEvent) -> RequestOrm:
     return ntc
 
 
-monitor_request_matcher = on_request(priority=1)
+def _request(event: RequestEvent):
+    return event.get_event_name() not in conf.onebot_monitor_ignore
+
+
+monitor_request_matcher = on_request(rule=_request, priority=1)
 
 
 @monitor_request_matcher.handle()
 async def monitor_request(event: RequestEvent):
-    if event.get_event_name() in conf.onebot_monitor_ignore:
-        return
-
     session = data_source.session()
     request = parse_request(event)
     session.add(request)

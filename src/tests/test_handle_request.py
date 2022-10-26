@@ -2,12 +2,13 @@ import pytest
 from nonebug import App
 
 from . import MyTest
+from .mock_map_user_group import MockMapUserGroup
 from .templates import *
 
 
 class TestAutoApproveFriendAdd(MyTest):
     env = {
-        "onebot_monitor_auto_approve_friend_add_request": "true"
+        "onebot_monitor_auto_approve_friend_add_request": True
     }
 
     @pytest.mark.asyncio
@@ -27,7 +28,7 @@ class TestAutoApproveFriendAdd(MyTest):
 
 class TestAutoApproveGroupInvite(MyTest):
     env = {
-        "onebot_monitor_auto_approve_group_invite_request": "true"
+        "onebot_monitor_auto_approve_group_invite_request": True
     }
 
     @pytest.mark.asyncio
@@ -45,13 +46,17 @@ class TestAutoApproveGroupInvite(MyTest):
             }, result={})
 
 
-class TestForwardRequest(MyTest):
+class TestForwardRequest(MyTest, MockMapUserGroup):
     env = {
-        "onebot_monitor_request_forward_to": str(FORWARD_TO)
+        "onebot_monitor_forward_to": FORWARD_TO,
+        "onebot_monitor_forward_request": True
     }
 
     @pytest.mark.asyncio
-    async def test_friend_add(self, app: App):
+    async def test_friend_add(self, app: App, patch_map_user_group):
+        from nonebot_plugin_onebot_monitor import handle_request
+        patch_map_user_group(handle_request)
+
         from nonebot_plugin_onebot_monitor.handle_request import friend_add
         from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment
 
@@ -71,7 +76,10 @@ class TestForwardRequest(MyTest):
         assert context[MESSAGE_ID] == latest_request[str(SELF_ID)]
 
     @pytest.mark.asyncio
-    async def test_group_invite(self, app: App):
+    async def test_group_invite(self, app: App, patch_map_user_group):
+        from nonebot_plugin_onebot_monitor import handle_request
+        patch_map_user_group(handle_request)
+
         from nonebot_plugin_onebot_monitor.handle_request import group_invite
         from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment
 
@@ -93,15 +101,14 @@ class TestForwardRequest(MyTest):
 
 class TestOperation(MyTest):
     env = {
-        "onebot_monitor_request_forward_to": str(FORWARD_TO)
+        "onebot_monitor_forward_to": FORWARD_TO,
+        "onebot_monitor_forward_request": True
     }
 
     @pytest.mark.asyncio
     async def test_approve(self, app: App):
-        from nonebot_plugin_onebot_monitor.handle_request import approve_matcher
+        from nonebot_plugin_onebot_monitor.handle_request import approve_matcher, context, latest_request
         from nonebot.adapters.onebot.v11 import Bot
-
-        from nonebot_plugin_onebot_monitor.handle_request import context, latest_request
 
         req = group_request_event()
         context[MESSAGE_ID] = req
@@ -125,10 +132,8 @@ class TestOperation(MyTest):
 
     @pytest.mark.asyncio
     async def test_reject(self, app: App):
-        from nonebot_plugin_onebot_monitor.handle_request import reject_matcher
+        from nonebot_plugin_onebot_monitor.handle_request import reject_matcher, context, latest_request
         from nonebot.adapters.onebot.v11 import Bot
-
-        from nonebot_plugin_onebot_monitor.handle_request import context, latest_request
 
         req = group_request_event()
         context[MESSAGE_ID] = req

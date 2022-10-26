@@ -5,7 +5,7 @@ from nonebot.adapters.onebot.v11 import Bot, GroupRequestEvent, Event, Message, 
 from nonebot.internal.matcher import Matcher
 
 from .config import conf
-from .utils import get_reply_message_id
+from .utils import get_reply_message_id, map_user, map_group
 
 context = TTLCache(4096, 86400 * 3)
 latest_request = {}
@@ -25,11 +25,11 @@ if conf.onebot_monitor_auto_approve_friend_add_request:
         logger.success(f"auto approved {event}")
         await matcher.finish()
 
-if conf.onebot_monitor_request_forward_to is not None:
+if conf.onebot_monitor_forward_request:
     @friend_add.handle()
     async def forward_friend_add(bot: Bot, event: FriendRequestEvent):
-        msg = Message(MessageSegment.text(f"收到来自用户{event.user_id}的好友申请。回复“同意”或“拒绝”处理此申请。"))
-        send_result = await bot.send_private_msg(user_id=conf.onebot_monitor_request_forward_to, message=msg)
+        msg = Message(MessageSegment.text(f"收到来自用户{await map_user(event.user_id)}的好友申请。回复“同意”或“拒绝”处理此申请。"))
+        send_result = await bot.send_private_msg(user_id=conf.onebot_monitor_forward_to, message=msg)
 
         context[send_result["message_id"]] = event
         latest_request[bot.self_id] = event
@@ -49,17 +49,17 @@ if conf.onebot_monitor_auto_approve_group_invite_request:
         logger.success(f"auto approved {event}")
         await matcher.finish()
 
-if conf.onebot_monitor_request_forward_to is not None:
+if conf.onebot_monitor_forward_request:
     @group_invite.handle()
     async def forward_group_invite(bot: Bot, event: GroupRequestEvent):
-        msg = Message(MessageSegment.text(f"收到来自群{event.group_id}的入群邀请。回复“同意”或“拒绝”处理此申请。"))
-        send_result = await bot.send_private_msg(user_id=conf.onebot_monitor_request_forward_to, message=msg)
+        msg = Message(MessageSegment.text(f"收到来自群{await map_group(event.group_id)}的入群邀请。回复“同意”或“拒绝”处理此申请。"))
+        send_result = await bot.send_private_msg(user_id=conf.onebot_monitor_forward_to, message=msg)
 
         context[send_result["message_id"]] = event
         latest_request[bot.self_id] = event
 
 # ========== Operation ==========
-if conf.onebot_monitor_request_forward_to is not None:
+if conf.onebot_monitor_forward_request:
     def make_operation_handler(for_approve: bool):
         async def handler(bot: Bot, event: PrivateMessageEvent, matcher: Matcher):
             message_id = get_reply_message_id(event)
@@ -89,7 +89,7 @@ if conf.onebot_monitor_request_forward_to is not None:
 
 
     def _forward_to_only(event: PrivateMessageEvent):
-        return event.user_id == conf.onebot_monitor_request_forward_to
+        return event.user_id == conf.onebot_monitor_forward_to
 
 
     approve_matcher = on_fullmatch("同意", permission=_forward_to_only)

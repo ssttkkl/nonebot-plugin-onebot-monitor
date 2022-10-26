@@ -8,7 +8,7 @@ from tests.templates import SELF_ID, friend_request_event
 
 class TestMonitorRequest(MyTest, MockDataSource):
     @pytest.mark.asyncio
-    async def test(self, app: App):
+    async def test_record(self, app: App):
         from nonebot.adapters.onebot.v11 import Bot
 
         from nonebot_plugin_onebot_monitor.monitor_request import monitor_request_matcher
