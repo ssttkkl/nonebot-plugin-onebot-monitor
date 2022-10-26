@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import Column, BigInteger, Integer, String, Enum as SqlEnum
+from sqlalchemy import Column, BigInteger, Integer, String, Enum as SqlEnum, JSON
 
 from nonebot_plugin_onebot_monitor.models import data_source
 
@@ -25,4 +25,4 @@ class RequestOrm:
     user_id: int = Column(BigInteger, nullable=False)
     group_id: Optional[int] = Column(BigInteger)
 
-    comment: str = Column(String, nullable=False)
+    extra: dict = Column(JSON)

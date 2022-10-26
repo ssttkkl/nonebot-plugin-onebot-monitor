@@ -32,5 +32,6 @@ async def monitor_request(event: RequestEvent):
     session = data_source.session()
     request = parse_request(event)
     session.add(request)
-    logger.debug(f"recorded request {request}")
     await session.commit()
+
+    logger.success(f"recorded request {request}")

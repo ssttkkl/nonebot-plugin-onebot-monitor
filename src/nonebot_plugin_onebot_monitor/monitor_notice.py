@@ -32,5 +32,6 @@ async def monitor_notice(event: NoticeEvent):
     session = data_source.session()
     notice = parse_notice(event)
     session.add(notice)
-    logger.debug(f"recorded notice {notice}")
     await session.commit()
+
+    logger.success(f"recorded notice {notice}")
