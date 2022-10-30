@@ -155,3 +155,44 @@ class TestOperation(MyTest):
             })
 
         assert str(SELF_ID) not in latest_request
+
+    @pytest.mark.asyncio
+    async def test_no_request(self, app: App):
+        from nonebot_plugin_onebot_monitor.handle_request import reject_matcher
+        from nonebot.adapters.onebot.v11 import Bot
+
+        async with app.test_matcher(reject_matcher) as ctx:
+            message_event = private_message_event("拒绝")
+
+            bot = ctx.create_bot(self_id=str(SELF_ID), base=Bot)
+            ctx.receive_event(bot, message_event)
+            ctx.should_call_send(message_event, "没有收到请求", result={
+                "message_id": MESSAGE_ID_3
+            })
+
+    @pytest.mark.asyncio
+    async def test_reply(self, app: App):
+        from nonebot_plugin_onebot_monitor.handle_request import reject_matcher, context, latest_request
+        from nonebot.adapters.onebot.v11 import Bot
+
+        req = group_request_event()
+        context[MESSAGE_ID] = req
+        latest_request[str(SELF_ID)] = req
+
+        async with app.test_matcher(reject_matcher) as ctx:
+            message_event = private_message_event("拒绝", quote=True)
+
+            bot = ctx.create_bot(self_id=str(SELF_ID), base=Bot)
+            ctx.receive_event(bot, message_event)
+            ctx.should_call_api("set_group_add_request", data={
+                "flag": FLAG,
+                "sub_type": "invite",
+                "approve": False,
+                "reason": ""
+            }, result={})
+            ctx.should_call_send(message_event, "成功拒绝请求", result={
+                "message_id": MESSAGE_ID_3
+            })
+
+        assert MESSAGE_ID not in context
+        assert str(SELF_ID) not in latest_request
