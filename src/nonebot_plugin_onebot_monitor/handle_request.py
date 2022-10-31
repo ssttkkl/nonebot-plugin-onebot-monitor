@@ -30,6 +30,7 @@ if conf.onebot_monitor_forward_request:
     async def forward_friend_add(bot: Bot, event: FriendRequestEvent):
         msg = Message(MessageSegment.text(f"收到来自用户{await map_user(event.user_id)}的好友申请。回复“同意”或“拒绝”处理此申请。"))
         send_result = await bot.send_private_msg(user_id=conf.onebot_monitor_forward_to, message=msg)
+        logger.success(f"forwarded request {event}")
 
         context[send_result["message_id"]] = event
         latest_request[bot.self_id] = event
@@ -54,6 +55,7 @@ if conf.onebot_monitor_forward_request:
     async def forward_group_invite(bot: Bot, event: GroupRequestEvent):
         msg = Message(MessageSegment.text(f"收到来自群{await map_group(event.group_id)}的入群邀请。回复“同意”或“拒绝”处理此申请。"))
         send_result = await bot.send_private_msg(user_id=conf.onebot_monitor_forward_to, message=msg)
+        logger.success(f"forwarded request {event}")
 
         context[send_result["message_id"]] = event
         latest_request[bot.self_id] = event

@@ -1,7 +1,7 @@
 from nonebot import on_notice, logger
 from nonebot.adapters.onebot.v11 import NoticeEvent, Bot, Message, MessageSegment, GroupAdminNoticeEvent, \
     GroupDecreaseNoticeEvent, GroupIncreaseNoticeEvent, GroupBanNoticeEvent, GroupRecallNoticeEvent, PokeNotifyEvent, \
-    LuckyKingNotifyEvent, HonorNotifyEvent
+    LuckyKingNotifyEvent, HonorNotifyEvent, FriendAddNoticeEvent
 
 from nonebot_plugin_onebot_monitor.config import conf
 from nonebot_plugin_onebot_monitor.models import data_source
@@ -48,8 +48,13 @@ async def map_notice_forward_message(notice: NoticeEvent):
             msg = f"Bot在群聊{await map_group(notice.group_id)}主动撤回一条消息"
         else:
             msg = f"Bot在群聊{await map_group(notice.group_id)}被撤回一条消息（操作人：{await map_user(notice.operator_id)}）"
+    elif isinstance(notice, FriendAddNoticeEvent):
+        msg = f"Bot添加了新的好友{await map_user(notice.user_id)}"
     elif isinstance(notice, PokeNotifyEvent):
-        msg = f"Bot在群聊{await map_group(notice.group_id)}被戳一戳（操作人：{await map_user(notice.user_id)}）"
+        if notice.group_id is not None:
+            msg = f"Bot在群聊{await map_group(notice.group_id)}被戳一戳（操作人：{await map_user(notice.user_id)}）"
+        else:
+            msg = f"Bot在私聊中被{await map_user(notice.user_id)}戳一戳"
     elif isinstance(notice, LuckyKingNotifyEvent):
         msg = f"Bot在群聊{await map_group(notice.group_id)}成为红包运气王"
     elif isinstance(notice, HonorNotifyEvent):
@@ -67,7 +72,9 @@ async def map_notice_forward_message(notice: NoticeEvent):
 
 
 def _notice(event: NoticeEvent):
-    return event.is_tome() and event.get_event_name() not in conf.onebot_monitor_ignore
+    # FriendAddNoticeEvent单独判断
+    return ((event.is_tome() or isinstance(event, FriendAddNoticeEvent))
+            and event.get_event_name() not in conf.onebot_monitor_ignore)
 
 
 monitor_notice_matcher = on_notice(rule=_notice, priority=1)
@@ -88,3 +95,4 @@ if conf.onebot_monitor_forward_notice:
     async def forward_notice(bot: Bot, event: NoticeEvent):
         msg = await map_notice_forward_message(event)
         await bot.send_private_msg(user_id=conf.onebot_monitor_forward_to, message=msg)
+        logger.success(f"forwarded notice {event}")
