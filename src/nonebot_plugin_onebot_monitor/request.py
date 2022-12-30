@@ -5,10 +5,11 @@ from nonebot.adapters.onebot.v11 import Bot, GroupRequestEvent, Event, Message, 
 from nonebot.internal.matcher import Matcher
 
 from .config import conf
-from .utils import get_reply_message_id, map_user, map_group
+from .utils import get_reply_message_id
+from .utils import map_user, map_group
 
-context = TTLCache(4096, 86400 * 3)
-latest_request = TTLCache(4096, 86400 * 3)
+context = TTLCache[int, Event](4096, 86400 * 3)
+latest_request = TTLCache[str, Event](4096, 86400 * 3)
 
 
 # ========== Friend Add ==========
