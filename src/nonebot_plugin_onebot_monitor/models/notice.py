@@ -1,10 +1,8 @@
 from enum import Enum
-from enum import Enum
 from typing import Optional
 
 from sqlalchemy import Column, Integer, BigInteger, JSON, String, Enum as SqlEnum
-
-from nonebot_plugin_onebot_monitor.models import data_source
+from sqlmodel.main import default_registry
 
 
 class NoticeType(str, Enum):
@@ -23,7 +21,7 @@ class NoticeType(str, Enum):
     notify = "notify"
 
 
-@data_source.registry.mapped
+@default_registry.mapped
 class NoticeOrm:
     __tablename__ = "notices"
 

@@ -2,8 +2,7 @@ from enum import Enum
 from typing import Optional
 
 from sqlalchemy import Column, BigInteger, Integer, String, Enum as SqlEnum, JSON
-
-from nonebot_plugin_onebot_monitor.models import data_source
+from sqlmodel.main import default_registry
 
 
 class RequestType(str, Enum):
@@ -11,7 +10,7 @@ class RequestType(str, Enum):
     group = "group"
 
 
-@data_source.registry.mapped
+@default_registry.mapped
 class RequestOrm:
     __tablename__ = "requests"
 

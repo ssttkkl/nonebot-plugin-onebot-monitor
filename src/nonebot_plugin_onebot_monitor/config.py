@@ -5,7 +5,6 @@ from pydantic import BaseSettings, root_validator
 
 
 class Config(BaseSettings):
-    onebot_monitor_db_conn_url: str = "sqlite+aiosqlite:///onebot_monitor.db"
     onebot_monitor_ignore: List[str] = []
 
     onebot_monitor_auto_approve_friend_add_request: bool = False
